@@ -4,8 +4,10 @@ import { nsecEncode, decode } from 'nostr-tools/nip19'
 
 const RELAYS = [
   'wss://nos.lol',
+  'wss://relay.nostr.band',
   'wss://relay.damus.io',
   'wss://nostr.mom',
+  'wss://purplepag.es',
 ]
 
 const CARD_KIND = 30078
@@ -52,16 +54,29 @@ export function getNsec() {
   return localStorage.getItem(NSEC_KEY) || ''
 }
 
-export function connect(onEvent, onConnected) {
+export function getPubkey() {
+  return pubkey || ''
+}
+
+export function connect(onEvent, onEose) {
   if (activeSub) activeSub.close()
+  if (pool) pool.close(RELAYS)
   pool = new SimplePool()
+
+  console.log('[NOSTR] subscribing as', pubkey)
 
   activeSub = pool.subscribeMany(
     RELAYS,
     [{ kinds: [CARD_KIND], authors: [pubkey] }],
     {
-      onevent: onEvent,
-      oneose: onConnected,
+      onevent(event) {
+        console.log('[NOSTR] event received', event.tags.find(t => t[0] === 'name')?.[1], event.id.slice(0, 8))
+        onEvent(event)
+      },
+      oneose() {
+        console.log('[NOSTR] EOSE — initial sync complete')
+        onEose()
+      },
     }
   )
 
@@ -84,7 +99,10 @@ export async function publishCard(id, name, imageDataUrl) {
     },
     secretKey
   )
-  await Promise.any(pool.publish(RELAYS, event))
+  const results = await Promise.allSettled(pool.publish(RELAYS, event))
+  const ok = results.filter(r => r.status === 'fulfilled')
+  console.log(`[NOSTR] published "${name}" — ${ok.length}/${results.length} relays accepted`)
+  if (ok.length === 0) throw new Error('All relays rejected the event')
   return event
 }
 
@@ -99,5 +117,5 @@ export async function tombstoneCard(id) {
     },
     secretKey
   )
-  await Promise.any(pool.publish(RELAYS, event))
+  await Promise.allSettled(pool.publish(RELAYS, event))
 }

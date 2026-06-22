@@ -1,4 +1,4 @@
-import { initKey, importNsec, getNsec, connect, disconnect, publishCard, tombstoneCard } from './nostr.js'
+import { initKey, importNsec, getNsec, getPubkey, connect, disconnect, publishCard, tombstoneCard } from './nostr.js'
 import { saveCard, removeCard, getAllCards } from './store.js'
 import { compressImage } from './compress.js'
 import { generateQRDataUrl, startScanner } from './qr.js'
@@ -31,7 +31,10 @@ const keyDisplay     = $('key-display')
 const importKeyInput = $('import-key-input')
 
 // ---- NOSTR event handler ----
+let eventCount = 0
 function onNostrEvent(event) {
+  eventCount++
+  setSyncStatus('connected', `Syncing… (${eventCount} received)`)
   const dTag    = event.tags.find(t => t[0] === 'd')?.[1]
   const name    = event.tags.find(t => t[0] === 'name')?.[1] || 'Card'
   const deleted = event.tags.find(t => t[0] === 'deleted')?.[1] === 'true'
@@ -179,6 +182,9 @@ async function deleteActiveCard() {
 function openSettings() {
   keyDisplay.textContent = getNsec()
   importKeyInput.value = ''
+  // Show truncated pubkey for diagnostics
+  const pk = getPubkey()
+  syncLabel.textContent = syncLabel.textContent.replace(/ \(npub.*\)$/, '') + (pk ? ` (npub: ${pk.slice(0,8)}…)` : '')
   settingsModal.classList.remove('hidden')
   history.pushState({ modal: 'settings' }, '')
 }
@@ -254,15 +260,11 @@ function closeQRScanner() {
 
 function applyImportedKey(nsec) {
   if (importNsec(nsec)) {
-    disconnect()
-    setSyncStatus('', 'Reconnecting...')
-    keyDisplay.textContent = getNsec()
-    cards = []
-    renderCards()
-    connect(onNostrEvent, () => setSyncStatus('connected', 'Synced'))
-    setSyncStatus('connected', 'Connected — fetching cards...')
+    // Key saved to localStorage — reload for a clean start with the new identity
+    setSyncStatus('connected', 'Key imported — reloading...')
+    setTimeout(() => location.reload(), 600)
   } else {
-    alert('Invalid key scanned. Please try the manual paste option.')
+    alert('Invalid key. Please try again.')
   }
 }
 
@@ -277,9 +279,9 @@ async function init() {
   try {
     connect(
       onNostrEvent,
-      () => setSyncStatus('connected', 'Synced')
+      () => setSyncStatus('connected', eventCount > 0 ? `Synced (${eventCount} cards)` : 'Connected — no cards found on relays')
     )
-    setSyncStatus('connected', 'Connected')
+    setSyncStatus('connected', 'Connected — fetching…')
   } catch (e) {
     setSyncStatus('error', 'Offline — cards saved locally')
     console.warn('NOSTR connect failed:', e)
