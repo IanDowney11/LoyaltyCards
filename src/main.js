@@ -23,6 +23,7 @@ const nameInput        = $('card-name')
 const previewImg       = $('preview-img')
 const imagePlaceholder = $('image-placeholder')
 const settingsModal    = $('settings-modal')
+const menuSheet        = $('menu-sheet')
 const syncDot          = $('sync-dot')
 const syncLabel        = $('sync-label')
 const keyDisplay       = $('key-display')
@@ -66,9 +67,24 @@ function closeSheet(el, cb) {
 }
 
 sheetOverlay.addEventListener('click', () => {
-  if (activeSheet === addModal)      { closeAdd();      history.back() }
-  else if (activeSheet === settingsModal) { closeSettings(); history.back() }
+  if      (activeSheet === menuSheet)      { closeMenu();     history.back() }
+  else if (activeSheet === addModal)       { closeAdd();      history.back() }
+  else if (activeSheet === settingsModal)  { closeSettings(); history.back() }
 })
+
+// Transition between sheets without dismissing the overlay (seamless hand-off)
+function switchSheet(from, toFn) {
+  if (activeSheet === from) activeSheet = null
+  from.style.transform = ''
+  from.style.transition = ''
+  sheetOverlay.style.opacity = ''
+  from.classList.remove('is-open')
+  from.addEventListener('transitionend', () => {
+    from.classList.add('hidden')
+    toFn()
+  }, { once: true })
+  // Overlay stays visible — toFn (via openSheet) will re-confirm it
+}
 
 // ---- Wake Lock ----
 async function acquireWakeLock() {
@@ -333,6 +349,16 @@ function initSheetDrag(sheetEl, closeFn, historyModal) {
   }, { passive: true })
 }
 
+// ---- Menu sheet ----
+function openMenu() {
+  openSheet(menuSheet)
+  history.pushState({ modal: 'menu' }, '')
+}
+
+function closeMenu() {
+  closeSheet(menuSheet)
+}
+
 // ---- Add card ----
 function openAdd() {
   nameInput.value = ''
@@ -507,12 +533,15 @@ async function init() {
     navigator.serviceWorker.register('/sw.js').catch(() => {})
   }
 
-  initSheetDrag(addModal, closeAdd, 'add')
+  initSheetDrag(menuSheet,     closeMenu,     'menu')
+  initSheetDrag(addModal,      closeAdd,      'add')
   initSheetDrag(settingsModal, closeSettings, 'settings')
 }
 
 // ---- Event wiring ----
-$('add-btn').addEventListener('click', openAdd)
+$('menu-btn').addEventListener('click', openMenu)
+$('menu-add-btn').addEventListener('click', () => switchSheet(menuSheet, openAdd))
+$('menu-settings-btn').addEventListener('click', () => switchSheet(menuSheet, openSettings))
 
 $('card-back-btn').addEventListener('click', () => { closeCard(); history.back() })
 $('card-delete-btn').addEventListener('click', deleteActiveCard)
@@ -531,7 +560,6 @@ document.querySelectorAll('.pick').forEach(btn => {
   })
 })
 
-$('settings-btn').addEventListener('click', openSettings)
 $('settings-back-btn').addEventListener('click', () => { closeSettings(); history.back() })
 
 $('copy-key-btn').addEventListener('click', async () => {
@@ -591,13 +619,15 @@ $('refresh-btn').addEventListener('click', () => {
   })
 })
 
-window.addEventListener('popstate', e => {
-  const modal = e.state?.modal
-  if      (modal === 'card'     && cardModal.classList.contains('is-open'))       closeCard()
-  else if (modal === 'add'      && addModal.classList.contains('is-open'))        closeAdd()
-  else if (modal === 'settings' && settingsModal.classList.contains('is-open'))   closeSettings()
-  else if (modal === 'qr'       && $('qr-modal').classList.contains('is-open'))   closeQRDisplay()
-  else if (modal === 'scan'     && $('scan-modal').classList.contains('is-open')) closeQRScanner()
+// Close whichever modal is currently open (fullscreen first, then sheets)
+window.addEventListener('popstate', () => {
+  if      ($('scan-modal').classList.contains('is-open')) closeQRScanner()
+  else if ($('qr-modal').classList.contains('is-open'))   closeQRDisplay()
+  else if (cardModal.classList.contains('is-open'))        closeCard()
+  else if (addModal.classList.contains('is-open'))         closeAdd()
+  else if (settingsModal.classList.contains('is-open'))    closeSettings()
+  else if (menuSheet.classList.contains('is-open'))        closeMenu()
+  // Nothing open → stale history state from switchSheet, ignore
 })
 
 init()

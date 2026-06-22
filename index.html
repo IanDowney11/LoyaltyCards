@@ -15,9 +15,11 @@
 <body>
   <div id="app">
 
-    <!-- Minimal header — title only -->
+    <!-- Header: sync dot + title + hamburger -->
     <header>
+      <span id="sync-dot"></span>
       <h1>Loyalty Cards</h1>
+      <button id="menu-btn" aria-label="Menu">&#9776;</button>
     </header>
 
     <!-- Card grid -->
@@ -25,21 +27,9 @@
       <div id="empty-state" class="hidden">
         <div class="empty-icon">&#128179;</div>
         <p>No cards yet</p>
-        <p class="empty-sub">Tap + to add your first card</p>
+        <p class="empty-sub">Tap &#9776; to add your first card</p>
       </div>
     </main>
-
-    <!-- FAB -->
-    <button id="add-btn" aria-label="Add card">+</button>
-
-    <!-- Bottom navigation bar -->
-    <nav id="bottom-bar">
-      <div id="sync-pill">
-        <span id="sync-dot"></span>
-        <span id="sync-label">Connecting…</span>
-      </div>
-      <button id="settings-btn" aria-label="Settings">&#9881;</button>
-    </nav>
 
     <!-- Overlay for sheets -->
     <div id="sheet-overlay"></div>
@@ -93,6 +83,24 @@
     </div>
 
     <!-- ── Bottom sheets (slide up from bottom) ── -->
+
+    <!-- Menu -->
+    <div id="menu-sheet" class="sheet hidden">
+      <div class="sheet-handle"><div class="drag-pill"></div></div>
+      <div class="menu-body">
+        <div id="sync-status-row">
+          <span id="sync-label">Connecting…</span>
+        </div>
+        <button id="menu-add-btn" class="menu-action menu-action--primary">
+          <span class="menu-icon">+</span>
+          <span>Add Card</span>
+        </button>
+        <button id="menu-settings-btn" class="menu-action">
+          <span class="menu-icon">&#9881;</span>
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
 
     <!-- Add card -->
     <div id="add-modal" class="sheet hidden">
