@@ -94,19 +94,73 @@ function renderCards() {
 }
 
 // ---- Card view ----
+let cardRotated = false
+let cardZoom = 1
+
+function applyCardTransform() {
+  if (cardRotated) {
+    cardImg.style.transform = `rotate(90deg) scale(${0.75 * cardZoom})`
+  } else {
+    cardImg.style.transform = cardZoom === 1 ? '' : `scale(${cardZoom})`
+  }
+}
+
+function resetCardTransform() {
+  cardRotated = false
+  cardZoom = 1
+  cardImg.style.transform = ''
+}
+
 function openCard(card) {
   activeCard = card
   cardName.textContent = card.name
   cardImg.src = card.image
-  cardImg.classList.remove('rotated')
+  resetCardTransform()
   cardModal.classList.remove('hidden')
   history.pushState({ modal: 'card' }, '')
 }
 
 function closeCard() {
   cardModal.classList.add('hidden')
+  resetCardTransform()
   activeCard = null
 }
+
+// ---- Pinch-to-zoom on card image ----
+;(function initPinchZoom() {
+  let startDist = 0
+  let startZoom = 1
+
+  cardImg.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      startDist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY
+      )
+      startZoom = cardZoom
+    }
+  }, { passive: false })
+
+  cardImg.addEventListener('touchmove', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault()
+      const dist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY
+      )
+      cardZoom = Math.min(Math.max(startZoom * (dist / startDist), 1), 8)
+      applyCardTransform()
+    }
+  }, { passive: false })
+
+  cardImg.addEventListener('touchend', e => {
+    if (e.touches.length === 0 && cardZoom < 1.1) {
+      cardZoom = 1
+      applyCardTransform()
+    }
+  })
+})()
 
 // ---- Add card ----
 function openAdd() {
@@ -296,7 +350,10 @@ async function init() {
 $('add-btn').addEventListener('click', openAdd)
 $('card-back-btn').addEventListener('click', () => { closeCard(); history.back() })
 $('card-delete-btn').addEventListener('click', deleteActiveCard)
-cardImg.addEventListener('click', () => cardImg.classList.toggle('rotated'))
+cardImg.addEventListener('click', () => {
+  cardRotated = !cardRotated
+  applyCardTransform()
+})
 
 $('add-back-btn').addEventListener('click', () => { closeAdd(); history.back() })
 addSaveBtn.addEventListener('click', saveNewCard)

@@ -216,11 +216,9 @@ header h1 {
   max-height: 100%;
   object-fit: contain;
   cursor: pointer;
-  transition: transform 0.3s;
-}
-
-#card-modal-img.rotated {
-  transform: rotate(90deg) scale(0.75);
+  touch-action: none;
+  transition: transform 0.25s ease;
+  will-change: transform;
 }
 
 .scan-hint {
