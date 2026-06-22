@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Loyalty Cards">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.svg">
+  <title>Loyalty Cards</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <header>
+      <h1>Loyalty Cards</h1>
+      <button id="settings-btn" aria-label="Settings">&#9881;</button>
+    </header>
+
+    <main id="card-grid">
+      <div id="empty-state" class="hidden">
+        <div class="empty-icon">&#128179;</div>
+        <p>No cards yet</p>
+        <p class="empty-sub">Tap + to add your first card</p>
+      </div>
+    </main>
+
+    <button id="add-btn" aria-label="Add card">+</button>
+
+    <!-- Fullscreen card view -->
+    <div id="card-modal" class="modal hidden">
+      <div class="modal-header">
+        <button id="card-back-btn" aria-label="Back">&#8592;</button>
+        <h2 id="card-modal-name"></h2>
+        <button id="card-delete-btn" aria-label="Delete card">&#128465;</button>
+      </div>
+      <div class="modal-body scan-view">
+        <img id="card-modal-img" src="" alt="Card image">
+        <p class="scan-hint">Tap image to toggle orientation</p>
+      </div>
+    </div>
+
+    <!-- Add card -->
+    <div id="add-modal" class="modal hidden">
+      <div class="modal-header">
+        <button id="add-back-btn" aria-label="Cancel">&#8592;</button>
+        <h2>Add Card</h2>
+        <button id="add-save-btn">Save</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="card-name" placeholder="Card name (e.g. Flybuys)" maxlength="50" autocomplete="off">
+        <div id="image-area">
+          <img id="preview-img" src="" alt="Preview" class="hidden">
+          <div id="image-placeholder">
+            <button id="camera-btn">&#128247; Take Photo</button>
+            <button id="upload-btn">&#128193; Choose Image</button>
+          </div>
+        </div>
+        <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+        <input type="file" id="file-input" accept="image/*" class="hidden">
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-header">
+        <button id="settings-back-btn" aria-label="Back">&#8592;</button>
+        <h2>Settings</h2>
+      </div>
+      <div class="modal-body settings-body">
+        <div id="sync-status">
+          <span id="sync-dot"></span>
+          <span id="sync-label">Connecting...</span>
+        </div>
+
+        <section>
+          <h3>Share with Partner</h3>
+          <p class="hint">Paste this key into your partner's device to sync cards.</p>
+          <div id="key-display"></div>
+          <button id="copy-key-btn" class="action-btn">Copy Key</button>
+        </section>
+
+        <hr>
+
+        <section>
+          <h3>Import Key</h3>
+          <p class="hint">Paste a key from another device to sync with it.</p>
+          <input type="text" id="import-key-input" placeholder="nsec1..." autocomplete="off" autocorrect="off" spellcheck="false">
+          <button id="import-key-btn" class="action-btn">Import &amp; Sync</button>
+        </section>
+
+        <hr>
+
+        <section>
+          <button id="refresh-btn" class="action-btn">&#8635; Re-fetch from NOSTR</button>
+        </section>
+      </div>
+    </div>
+
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

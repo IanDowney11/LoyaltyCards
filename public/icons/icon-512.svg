@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1a1a2e"/>
+  <!-- Card body -->
+  <rect x="72" y="152" width="368" height="232" rx="36" fill="#6c63ff"/>
+  <!-- Magnetic strip -->
+  <rect x="72" y="212" width="368" height="58" fill="#252542"/>
+  <!-- Barcode lines -->
+  <rect x="130" y="298" width="10" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="150" y="298" width="6"  height="44" rx="3" fill="#4ecca3"/>
+  <rect x="162" y="298" width="14" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="184" y="298" width="8"  height="44" rx="3" fill="#4ecca3"/>
+  <rect x="200" y="298" width="16" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="224" y="298" width="6"  height="44" rx="3" fill="#4ecca3"/>
+  <rect x="238" y="298" width="10" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="258" y="298" width="8"  height="44" rx="3" fill="#4ecca3"/>
+  <rect x="274" y="298" width="14" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="298" y="298" width="6"  height="44" rx="3" fill="#4ecca3"/>
+  <rect x="312" y="298" width="10" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="332" y="298" width="8"  height="44" rx="3" fill="#4ecca3"/>
+  <rect x="350" y="298" width="12" height="44" rx="3" fill="#4ecca3"/>
+  <rect x="372" y="298" width="6"  height="44" rx="3" fill="#4ecca3"/>
+</svg>
