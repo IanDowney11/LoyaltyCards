@@ -67,7 +67,7 @@ export function connect(onEvent, onEose) {
 
   activeSub = pool.subscribeMany(
     RELAYS,
-    [{ kinds: [CARD_KIND], authors: [pubkey] }],
+    { kinds: [CARD_KIND], authors: [pubkey] },
     {
       onevent(event) {
         console.log('[NOSTR] event received', event.tags.find(t => t[0] === 'name')?.[1], event.id.slice(0, 8))
