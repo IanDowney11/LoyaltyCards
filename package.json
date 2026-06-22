@@ -8,7 +8,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "nostr-tools": "^2.7.2"
+    "jsqr": "^1.4.0",
+    "nostr-tools": "^2.7.2",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "vite": "^5.4.0"

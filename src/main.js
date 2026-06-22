@@ -1,6 +1,7 @@
 import { initKey, importNsec, getNsec, connect, disconnect, publishCard, tombstoneCard } from './nostr.js'
 import { saveCard, removeCard, getAllCards } from './store.js'
 import { compressImage } from './compress.js'
+import { generateQRDataUrl, startScanner } from './qr.js'
 
 // ---- State ----
 let cards = []
@@ -191,6 +192,80 @@ function setSyncStatus(state, text) {
   syncLabel.textContent = text
 }
 
+// ---- QR display ----
+async function openQRDisplay() {
+  const dataUrl = await generateQRDataUrl(getNsec())
+  $('qr-img').src = dataUrl
+  $('qr-modal').classList.remove('hidden')
+  history.pushState({ modal: 'qr' }, '')
+}
+
+function closeQRDisplay() {
+  $('qr-modal').classList.add('hidden')
+}
+
+// ---- QR scanner ----
+let activeScanner = null
+
+function openQRScanner() {
+  const modal = $('scan-modal')
+  const viewport = $('scan-viewport')
+  const status = $('scan-status')
+
+  modal.classList.remove('hidden')
+  history.pushState({ modal: 'scan' }, '')
+  status.textContent = 'Starting camera...'
+
+  activeScanner = startScanner(
+    data => {
+      // QR detected — check it looks like an nsec key
+      if (!data.startsWith('nsec1')) {
+        status.textContent = 'Not a valid key QR — try again'
+        // Restart scanner after brief pause
+        setTimeout(() => openQRScanner(), 1500)
+        return
+      }
+      closeQRScanner()
+      if (history.state?.modal === 'scan') history.back()
+      applyImportedKey(data)
+    },
+    err => {
+      console.error('Camera error:', err)
+      status.textContent = 'Camera access denied. Use manual paste instead.'
+    }
+  )
+
+  // Inject video element into viewport (before the overlay)
+  activeScanner.video.className = 'scan-video'
+  viewport.insertBefore(activeScanner.video, viewport.firstChild)
+  activeScanner.video.addEventListener('loadedmetadata', () => {
+    status.textContent = 'Point camera at QR code'
+  })
+}
+
+function closeQRScanner() {
+  if (activeScanner) {
+    activeScanner.stop()
+    activeScanner.video.remove()
+    activeScanner = null
+  }
+  $('scan-modal').classList.add('hidden')
+}
+
+function applyImportedKey(nsec) {
+  if (importNsec(nsec)) {
+    disconnect()
+    setSyncStatus('', 'Reconnecting...')
+    keyDisplay.textContent = getNsec()
+    cards = []
+    renderCards()
+    connect(onNostrEvent, () => setSyncStatus('connected', 'Synced'))
+    setSyncStatus('connected', 'Connected — fetching cards...')
+  } else {
+    alert('Invalid key scanned. Please try the manual paste option.')
+  }
+}
+
 // ---- Init ----
 async function init() {
   initKey()
@@ -245,22 +320,15 @@ $('copy-key-btn').addEventListener('click', async () => {
 $('import-key-btn').addEventListener('click', () => {
   const val = importKeyInput.value.trim()
   if (!val) return
-  if (importNsec(val)) {
-    disconnect()
-    setSyncStatus('', 'Reconnecting...')
-    keyDisplay.textContent = getNsec()
-    cards = []
-    renderCards()
-    connect(
-      onNostrEvent,
-      () => setSyncStatus('connected', 'Synced')
-    )
-    setSyncStatus('connected', 'Connected — fetching cards...')
-    importKeyInput.value = ''
-  } else {
-    alert('Invalid key. Please paste the full nsec1... key.')
-  }
+  applyImportedKey(val)
+  importKeyInput.value = ''
 })
+
+$('show-qr-btn').addEventListener('click', openQRDisplay)
+$('qr-back-btn').addEventListener('click', () => { closeQRDisplay(); history.back() })
+
+$('scan-qr-btn').addEventListener('click', openQRScanner)
+$('scan-cancel-btn').addEventListener('click', () => { closeQRScanner(); history.back() })
 
 $('refresh-btn').addEventListener('click', () => {
   setSyncStatus('', 'Re-fetching...')
@@ -282,6 +350,8 @@ window.addEventListener('popstate', e => {
   if (modal === 'card' && !cardModal.classList.contains('hidden')) closeCard()
   else if (modal === 'add' && !addModal.classList.contains('hidden')) closeAdd()
   else if (modal === 'settings' && !settingsModal.classList.contains('hidden')) closeSettings()
+  else if (modal === 'qr' && !$('qr-modal').classList.contains('hidden')) closeQRDisplay()
+  else if (modal === 'scan' && !$('scan-modal').classList.contains('hidden')) closeQRScanner()
 })
 
 init()

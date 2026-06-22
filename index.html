@@ -78,8 +78,9 @@
 
         <section>
           <h3>Share with Partner</h3>
-          <p class="hint">Paste this key into your partner's device to sync cards.</p>
+          <p class="hint">Show a QR code for your partner to scan, or copy the key manually.</p>
           <div id="key-display"></div>
+          <button id="show-qr-btn" class="action-btn action-btn--primary">&#9641; Show QR Code</button>
           <button id="copy-key-btn" class="action-btn">Copy Key</button>
         </section>
 
@@ -87,8 +88,9 @@
 
         <section>
           <h3>Import Key</h3>
-          <p class="hint">Paste a key from another device to sync with it.</p>
-          <input type="text" id="import-key-input" placeholder="nsec1..." autocomplete="off" autocorrect="off" spellcheck="false">
+          <p class="hint">Scan your partner's QR code, or paste their key manually.</p>
+          <button id="scan-qr-btn" class="action-btn action-btn--primary">&#128247; Scan QR Code</button>
+          <input type="text" id="import-key-input" placeholder="nsec1... (manual)" autocomplete="off" autocorrect="off" spellcheck="false">
           <button id="import-key-btn" class="action-btn">Import &amp; Sync</button>
         </section>
 
@@ -97,6 +99,42 @@
         <section>
           <button id="refresh-btn" class="action-btn">&#8635; Re-fetch from NOSTR</button>
         </section>
+      </div>
+    </div>
+
+    <!-- QR display -->
+    <div id="qr-modal" class="modal hidden">
+      <div class="modal-header">
+        <button id="qr-back-btn" aria-label="Close">&#8592;</button>
+        <h2>Share Key</h2>
+        <div style="width:44px"></div>
+      </div>
+      <div class="modal-body qr-body">
+        <p class="hint" style="text-align:center">Partner scans this to sync cards</p>
+        <div id="qr-container">
+          <img id="qr-img" src="" alt="QR Code">
+        </div>
+        <p class="hint" style="text-align:center;font-size:0.75rem">Keep this screen open while they scan</p>
+      </div>
+    </div>
+
+    <!-- QR scanner -->
+    <div id="scan-modal" class="modal hidden">
+      <div class="modal-header">
+        <button id="scan-cancel-btn" aria-label="Cancel">Cancel</button>
+        <h2>Scan QR Code</h2>
+        <div style="width:60px"></div>
+      </div>
+      <div id="scan-body">
+        <div id="scan-viewport">
+          <!-- video injected by scanner -->
+          <div class="scan-overlay">
+            <div class="scan-frame">
+              <div class="scan-line"></div>
+            </div>
+          </div>
+        </div>
+        <p id="scan-status">Point camera at QR code</p>
       </div>
     </div>
 
