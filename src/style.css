@@ -17,6 +17,10 @@
   --success: #4ecca3;
 }
 
+html {
+  font-size: 32px; /* 2× browser default — all rem values scale */
+}
+
 html, body {
   height: 100%;
   overscroll-behavior: none;
@@ -284,7 +288,7 @@ input[type="text"]::placeholder { color: var(--text2); }
   border-radius: 10px;
   font-size: 0.95rem;
   cursor: pointer;
-  width: 190px;
+  width: 100%;
   text-align: center;
   transition: background 0.15s;
 }

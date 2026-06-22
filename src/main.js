@@ -96,18 +96,25 @@ function renderCards() {
 // ---- Card view ----
 let cardRotated = false
 let cardZoom = 1
+let cardTx = 0   // pan offset in screen pixels
+let cardTy = 0
 
 function applyCardTransform() {
+  const t = (cardTx || cardTy) ? `translate(${cardTx}px, ${cardTy}px) ` : ''
   if (cardRotated) {
-    cardImg.style.transform = `rotate(90deg) scale(${0.75 * cardZoom})`
+    cardImg.style.transform = `${t}rotate(90deg) scale(${0.75 * cardZoom})`
+  } else if (cardZoom !== 1 || cardTx || cardTy) {
+    cardImg.style.transform = `${t}scale(${cardZoom})`
   } else {
-    cardImg.style.transform = cardZoom === 1 ? '' : `scale(${cardZoom})`
+    cardImg.style.transform = ''
   }
 }
 
 function resetCardTransform() {
   cardRotated = false
   cardZoom = 1
+  cardTx = 0
+  cardTy = 0
   cardImg.style.transform = ''
 }
 
@@ -126,19 +133,30 @@ function closeCard() {
   activeCard = null
 }
 
-// ---- Pinch-to-zoom on card image ----
+// ---- Pinch-to-zoom + pan on card image ----
 ;(function initPinchZoom() {
-  let startDist = 0
-  let startZoom = 1
+  let startDist = 0, startZoom = 1, startTx = 0, startTy = 0
+  let panStartX = 0, panStartY = 0, panStartTx = 0, panStartTy = 0
+  let panning = false
 
   cardImg.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
       e.preventDefault()
+      panning = false
       startDist = Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY
       )
       startZoom = cardZoom
+      startTx = cardTx
+      startTy = cardTy
+    } else if (e.touches.length === 1 && cardZoom > 1) {
+      e.preventDefault()
+      panning = true
+      panStartX = e.touches[0].clientX
+      panStartY = e.touches[0].clientY
+      panStartTx = cardTx
+      panStartTy = cardTy
     }
   }, { passive: false })
 
@@ -151,13 +169,25 @@ function closeCard() {
       )
       cardZoom = Math.min(Math.max(startZoom * (dist / startDist), 1), 8)
       applyCardTransform()
+    } else if (e.touches.length === 1 && panning) {
+      e.preventDefault()
+      cardTx = panStartTx + (e.touches[0].clientX - panStartX)
+      cardTy = panStartTy + (e.touches[0].clientY - panStartY)
+      applyCardTransform()
     }
   }, { passive: false })
 
   cardImg.addEventListener('touchend', e => {
-    if (e.touches.length === 0 && cardZoom < 1.1) {
-      cardZoom = 1
-      applyCardTransform()
+    if (e.touches.length === 0) {
+      panning = false
+      if (cardZoom < 1.1) resetCardTransform()
+    } else if (e.touches.length === 1 && cardZoom > 1) {
+      // one finger lifted during pinch — switch to pan
+      panning = true
+      panStartX = e.touches[0].clientX
+      panStartY = e.touches[0].clientY
+      panStartTx = cardTx
+      panStartTy = cardTy
     }
   })
 })()
