@@ -1,5 +1,5 @@
 const MAX_WIDTH = 900
-const TARGET_BYTES = 70 * 1024 // 70KB — fits comfortably in NOSTR events
+const TARGET_BYTES = 28 * 1024 // 28KB binary → ~38KB base64 — safely under all relay limits
 
 export function compressImage(file) {
   return new Promise((resolve, reject) => {

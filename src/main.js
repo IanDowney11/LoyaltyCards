@@ -330,6 +330,26 @@ $('qr-back-btn').addEventListener('click', () => { closeQRDisplay(); history.bac
 $('scan-qr-btn').addEventListener('click', openQRScanner)
 $('scan-cancel-btn').addEventListener('click', () => { closeQRScanner(); history.back() })
 
+$('push-all-btn').addEventListener('click', async () => {
+  const btn = $('push-all-btn')
+  if (cards.length === 0) { btn.textContent = 'No cards to push'; setTimeout(() => { btn.textContent = '↑ Push local cards to NOSTR' }, 2000); return }
+  btn.disabled = true
+  btn.textContent = `Pushing 0 / ${cards.length}...`
+  let ok = 0, fail = 0
+  for (const card of cards) {
+    try {
+      await publishCard(card.id, card.name, card.image)
+      ok++
+    } catch {
+      fail++
+    }
+    btn.textContent = `Pushing ${ok + fail} / ${cards.length}...`
+  }
+  btn.disabled = false
+  btn.textContent = fail > 0 ? `Done (${ok} pushed, ${fail} failed)` : `Done — ${ok} card${ok !== 1 ? 's' : ''} pushed`
+  setTimeout(() => { btn.textContent = '↑ Push local cards to NOSTR' }, 4000)
+})
+
 $('refresh-btn').addEventListener('click', () => {
   setSyncStatus('', 'Re-fetching...')
   disconnect()
