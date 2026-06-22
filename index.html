@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0f1a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Loyalty Cards">
@@ -15,11 +15,12 @@
 <body>
   <div id="app">
 
+    <!-- Minimal header — title only -->
     <header>
       <h1>Loyalty Cards</h1>
-      <button id="settings-btn" aria-label="Settings">&#9881;</button>
     </header>
 
+    <!-- Card grid -->
     <main id="card-grid">
       <div id="empty-state" class="hidden">
         <div class="empty-icon">&#128179;</div>
@@ -28,30 +29,93 @@
       </div>
     </main>
 
+    <!-- FAB -->
     <button id="add-btn" aria-label="Add card">+</button>
 
-    <!-- Fullscreen card view -->
+    <!-- Bottom navigation bar -->
+    <nav id="bottom-bar">
+      <div id="sync-pill">
+        <span id="sync-dot"></span>
+        <span id="sync-label">Connecting…</span>
+      </div>
+      <button id="settings-btn" aria-label="Settings">&#9881;</button>
+    </nav>
+
+    <!-- Overlay for sheets -->
+    <div id="sheet-overlay"></div>
+
+    <!-- ── Fullscreen modals (slide up, cover screen) ── -->
+
+    <!-- Card scan view -->
     <div id="card-modal" class="modal hidden">
       <div class="modal-header">
-        <button id="card-back-btn" aria-label="Back">&#8592;</button>
+        <button id="card-back-btn" aria-label="Close">&#10005;</button>
         <h2 id="card-modal-name"></h2>
-        <button id="card-delete-btn" aria-label="Delete card">&#128465;</button>
+        <button id="card-delete-btn" aria-label="Delete">&#128465;</button>
       </div>
-      <div class="modal-body scan-view">
+      <div class="scan-view">
         <img id="card-modal-img" src="" alt="Card image">
-        <p class="scan-hint">Tap to rotate &bull; Pinch to zoom</p>
+        <p class="scan-hint">Tap to rotate &bull; Pinch to zoom &bull; Swipe down to close</p>
       </div>
     </div>
 
-    <!-- Add card -->
-    <div id="add-modal" class="modal hidden">
+    <!-- QR display -->
+    <div id="qr-modal" class="modal hidden">
       <div class="modal-header">
-        <button id="add-back-btn" aria-label="Cancel">&#8592;</button>
+        <button id="qr-back-btn" aria-label="Close">&#10005;</button>
+        <h2>Share Key</h2>
+        <div style="width:52px"></div>
+      </div>
+      <div class="modal-body qr-body">
+        <p class="hint" style="text-align:center">Partner scans this to sync cards</p>
+        <div id="qr-container">
+          <img id="qr-img" src="" alt="QR Code">
+        </div>
+        <p class="hint" style="text-align:center">Keep this screen open while they scan</p>
+      </div>
+    </div>
+
+    <!-- QR scanner -->
+    <div id="scan-modal" class="modal hidden">
+      <div class="modal-header">
+        <button id="scan-cancel-btn">Cancel</button>
+        <h2>Scan QR Code</h2>
+        <div style="width:80px"></div>
+      </div>
+      <div id="scan-body">
+        <div id="scan-viewport">
+          <div class="scan-overlay">
+            <div class="scan-frame"><div class="scan-line"></div></div>
+          </div>
+        </div>
+        <p id="scan-status">Point camera at QR code</p>
+      </div>
+    </div>
+
+    <!-- ── Bottom sheets (slide up from bottom) ── -->
+
+    <!-- Add card -->
+    <div id="add-modal" class="sheet hidden">
+      <div class="sheet-handle"><div class="drag-pill"></div></div>
+      <div class="sheet-header">
+        <button id="add-back-btn">Cancel</button>
         <h2>Add Card</h2>
         <button id="add-save-btn">Save</button>
       </div>
-      <div class="modal-body">
-        <input type="text" id="card-name" placeholder="Card name (e.g. Flybuys)" maxlength="50" autocomplete="off">
+      <div class="sheet-body">
+        <div id="quick-picks">
+          <button class="pick" data-name="Flybuys">Flybuys</button>
+          <button class="pick" data-name="Everyday Rewards">Everyday Rewards</button>
+          <button class="pick" data-name="Dan Murphy's">Dan Murphy's</button>
+          <button class="pick" data-name="BWS">BWS</button>
+          <button class="pick" data-name="Myer ONE">Myer ONE</button>
+          <button class="pick" data-name="David Jones">David Jones</button>
+          <button class="pick" data-name="Priceline">Priceline</button>
+          <button class="pick" data-name="Chemist Warehouse">Chemist Warehouse</button>
+          <button class="pick" data-name="BP Rewards">BP Rewards</button>
+          <button class="pick" data-name="ALDI">ALDI</button>
+        </div>
+        <input type="text" id="card-name" placeholder="Card name" maxlength="50" autocomplete="off">
         <div id="image-area">
           <img id="preview-img" src="" alt="Preview" class="hidden">
           <div id="image-placeholder">
@@ -65,16 +129,14 @@
     </div>
 
     <!-- Settings -->
-    <div id="settings-modal" class="modal hidden">
-      <div class="modal-header">
-        <button id="settings-back-btn" aria-label="Back">&#8592;</button>
+    <div id="settings-modal" class="sheet hidden">
+      <div class="sheet-handle"><div class="drag-pill"></div></div>
+      <div class="sheet-header">
+        <div style="width:60px"></div>
         <h2>Settings</h2>
+        <button id="settings-back-btn">Done</button>
       </div>
-      <div class="modal-body settings-body">
-        <div id="sync-status">
-          <span id="sync-dot"></span>
-          <span id="sync-label">Connecting...</span>
-        </div>
+      <div class="sheet-body settings-body">
 
         <section>
           <h3>Share with Partner</h3>
@@ -90,7 +152,7 @@
           <h3>Import Key</h3>
           <p class="hint">Scan your partner's QR code, or paste their key manually.</p>
           <button id="scan-qr-btn" class="action-btn action-btn--primary">&#128247; Scan QR Code</button>
-          <input type="text" id="import-key-input" placeholder="nsec1... (manual)" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="text" id="import-key-input" placeholder="nsec1… (manual)" autocomplete="off" autocorrect="off" spellcheck="false">
           <button id="import-key-btn" class="action-btn">Import &amp; Sync</button>
         </section>
 
@@ -98,48 +160,10 @@
 
         <section>
           <button id="push-all-btn" class="action-btn action-btn--primary">&#8593; Push local cards to NOSTR</button>
-          <p class="hint">Use this if another device isn't seeing your cards — re-uploads everything from this device.</p>
-        </section>
-
-        <section>
+          <p class="hint">Use this if another device isn't seeing your cards.</p>
           <button id="refresh-btn" class="action-btn">&#8635; Re-fetch from NOSTR</button>
         </section>
-      </div>
-    </div>
 
-    <!-- QR display -->
-    <div id="qr-modal" class="modal hidden">
-      <div class="modal-header">
-        <button id="qr-back-btn" aria-label="Close">&#8592;</button>
-        <h2>Share Key</h2>
-        <div style="width:44px"></div>
-      </div>
-      <div class="modal-body qr-body">
-        <p class="hint" style="text-align:center">Partner scans this to sync cards</p>
-        <div id="qr-container">
-          <img id="qr-img" src="" alt="QR Code">
-        </div>
-        <p class="hint" style="text-align:center;font-size:0.75rem">Keep this screen open while they scan</p>
-      </div>
-    </div>
-
-    <!-- QR scanner -->
-    <div id="scan-modal" class="modal hidden">
-      <div class="modal-header">
-        <button id="scan-cancel-btn" aria-label="Cancel">Cancel</button>
-        <h2>Scan QR Code</h2>
-        <div style="width:60px"></div>
-      </div>
-      <div id="scan-body">
-        <div id="scan-viewport">
-          <!-- video injected by scanner -->
-          <div class="scan-overlay">
-            <div class="scan-frame">
-              <div class="scan-line"></div>
-            </div>
-          </div>
-        </div>
-        <p id="scan-status">Point camera at QR code</p>
       </div>
     </div>
 
